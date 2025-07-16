@@ -1,0 +1,58 @@
+[
+  {
+    "title": "NEP 2020 Orientation & Sensitization Programme",
+    "issuer": "Central University of Punjab",
+    "issuedOn": "May 2025",
+    "skills": ["Education Policy", "NEP 2020", "Curriculum Design", "Academic Reform"],
+    "images": ["/images/certificates/nep2020.jpg"],
+    "link": "https://drive.google.com/file/d/16zO23_j15-w39bF7RcVyR2a2pTyBz-rn/view?usp=sharing"
+  },
+  {
+    "title": "Deep Learning",
+    "issuer": "NPTEL, IIT Ropar",
+    "issuedOn": "May 2024",
+    "skills": ["Deep Learning", "Neural Networks", "AI", "Python", "TensorFlow"],
+    "images": ["/images/certificates/deep_learning.jpg"],
+    "link": "https://archive.nptel.ac.in/noc/Ecertificate/?q=NPTEL24CS59S126080013630766818"
+  },
+  {
+    "title": "Data Analytics Essentials",
+    "issuer": "Coursera",
+    "issuedOn": "Dec 2023",
+    "skills": ["Data Analytics", "Data Visualization", "Descriptive Statistics", "Python", "Excel"],
+    "images": ["/images/certificates/data_analytics.jpg"],
+    "link": "https://www.credly.com/badges/34755bbd-2242-4089-b78e-f8eda60a385d/linked_in_profile"
+  },
+  {
+    "title": "Calculus for Machine Learning and Data Science",
+    "issuer": "Coursera",
+    "issuedOn": "Nov 2023",
+    "skills": ["Calculus", "Machine Learning", "Data Science", "Derivatives", "Integration"],
+    "images": ["/images/certificates/calculus.jpg"],
+    "link": "https://www.coursera.org/account/accomplishments/certificate/94R6U5HDGFZS"
+  },
+  {
+    "title": "Mathematics for Machine Learning and Data Science Specialization",
+    "issuer": "Coursera",
+    "issuedOn": "Nov 2023",
+    "skills": ["Mathematics", "Linear Algebra", "Probability", "Statistics", "Machine Learning"],
+    "images": ["/images/certificates/math_ml.jpg"],
+    "link": "https://www.coursera.org/account/accomplishments/specialization/certificate/EFVWBHNP2U55"
+  },
+  {
+    "title": "Probability & Statistics for Machine Learning & Data Science",
+    "issuer": "Coursera",
+    "issuedOn": "Nov 2023",
+    "skills": ["Probability", "Statistics", "Machine Learning", "Bayesian Analysis"],
+    "images": ["/images/certificates/probability_stats.jpg"],
+    "link": "https://www.coursera.org/account/accomplishments/certificate/WC22US9RPK6B"
+  },
+  {
+    "title": "Linear Algebra for Machine Learning and Data Science",
+    "issuer": "Coursera",
+    "issuedOn": "Sep 2023",
+    "skills": ["Linear Algebra", "Vectors", "Matrices", "Dimensionality Reduction"],
+    "images": ["/images/certificates/linear_algebra.jpg"],
+    "link": "https://www.coursera.org/account/accomplishments/certificate/ETSV2GDKZH7N"
+  }
+]

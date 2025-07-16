@@ -1,0 +1,162 @@
+[
+  {
+    "name": "Automatic Paper Generator",
+    "about": "Tool to generate exam papers automatically using AI logic.",
+    "skills": ["JavaScript", "React", "Node.js", "Python", "Tailwind", "SQL"],
+    "github": "https://github.com/Tarun08091997/Automatic_Paper_Genrator",
+    "live": "",
+    "images": [
+      "/images/projects/auto_paper_1.png",
+      "/images/projects/auto_paper_2.png",
+      "/images/projects/auto_paper_3.png",
+      "/images/projects/auto_paper_4.png"
+    ],
+    "descriptionPoints": [
+      "Engineered an automated tool for generating balanced exam papers with unit-wise weightage, difficulty distribution, and RBT compliance.",
+      "Increased paper confidentiality by 35% by replacing manual paper-setting with dynamic generation logic.",
+      "Built a paper generator with configurable total marks, difficulty ratio, and question count - reducing faculty workload by 60%.",
+      "Implemented real-time question bank validation to flag issues like unit imbalance, RBT gaps, and repeated questions saving examination department 30% of their time during exams.",
+      "Built a dashboard for teachers to preview papers, track history, and monitor submissions - enhancing usability and transparency."
+    ]
+  },
+  {
+    "name": "Mini ERP",
+    "about": "ERP system for CT University for managing students and results.",
+    "skills": ["JavaScript", "React", "Express", "Tailwind", "SQL"],
+    "github": "https://github.com/Tarun08091997/miniERP",
+    "live": "",
+    "images": [
+      "/images/projects/mini_erp_1.png",
+      "/images/projects/mini_erp_2.png",
+      "/images/projects/mini_erp_3.png",
+      "/images/projects/mini_erp_4.png"
+    ],
+    "descriptionPoints": [
+      "Developed a university ERP for managing student registrations, results, and assignments - serving 1000+ active users daily.",
+      "Reduced manual work by 70% by digitizing student registration and document upload workflows.",
+      "Built a secure authentication and role-based authorization system, increasing data protection.",
+      "Created a result management panel for teachers, enabling easy insertion, calculation, and visualization of marks.",
+      "Implemented an assignment submission portal for students and an evaluation module for teachers - cutting paper usage by 90% and improving submission tracking."
+    ]
+  },
+  {
+    "name": "Event & Task Manager",
+    "about": "Manages events and task distribution with hierarchy and scheduling checks.",
+    "skills": ["MERN", "SQL", "Tailwind"],
+    "github": "https://github.com/Tarun08091997/TaskManager",
+    "live": "",
+    "images": [
+      "/images/projects/task_1.png",
+      "/images/projects/task_2.png",
+      "/images/projects/task_3.png",
+      "/images/projects/task_4.png"
+    ],
+    "descriptionPoints": [
+      "Manages event scheduling and task distribution while preventing conflicts.",
+      "Reduced scheduling conflicts by 80% using a smart conflict-detection algorithm and time-slot validation.",
+      "Enabled higher authority approval, modification, or cancellation of events.",
+      "Built a multi-level task assignment system with deadlines, notifications, and live status tracking.",
+      "Improved task compliance by 50% with deadline reminders and progress visualization."
+    ]
+  },
+  {
+    "name": "Feedback App",
+    "about": "Feedback management system for CT University.",
+    "skills": ["JavaScript", "React"],
+    "github": "https://github.com/Tarun08091997/feedbackApp",
+    "live": "",
+    "images": [
+      "/images/projects/feedback_1.png",
+      "/images/projects/feedback_2.png",
+      "/images/projects/feedback_3.png",
+      "/images/projects/feedback_4.png"
+    ],
+    "descriptionPoints": [
+      "Designed and implemented feedback forms for students and teachers.",
+      "Stored and organized feedback data using MongoDB for future analysis.",
+      "Created real-time charts and statistics for feedback insights.",
+      "Added authentication for role-based access control.",
+      "Improved UI for ease of use and clarity of form questions."
+    ]
+  },
+  {
+    "name": "Student Connect App",
+    "about": "React Native app to connect students with university resources.",
+    "skills": ["React Native", "TypeScript"],
+    "github": "https://github.com/Tarun08091997/studentConnectApp",
+    "live": "",
+    "images": [
+      "/images/projects/connect_1.png",
+      "/images/projects/connect_2.png",
+      "/images/projects/connect_3.png",
+      "/images/projects/connect_4.png"
+    ],
+    "descriptionPoints": [
+      "Built a mobile interface to help students access university services.",
+      "Integrated notifications for academic updates and events.",
+      "Created a secure login system using Firebase auth.",
+      "Added timetable and calendar sync with device schedule.",
+      "Used TypeScript to ensure clean and maintainable codebase."
+    ]
+  },
+  {
+    "name": "Ecommerce",
+    "about": "MERN-based eCommerce site styled with Tailwind.",
+    "skills": ["MERN", "Tailwind"],
+    "github": "https://github.com/Tarun08091997/ecommerce",
+    "live": "",
+    "images": [
+      "/images/projects/ecommerce_1.png",
+      "/images/projects/ecommerce_2.png",
+      "/images/projects/ecommerce_3.png",
+      "/images/projects/ecommerce_4.png"
+    ],
+    "descriptionPoints": [
+      "Designed a responsive UI for online product listings.",
+      "Implemented cart, wishlist, and order tracking features.",
+      "Integrated payment gateways and order confirmation system.",
+      "Created admin panel for product, category, and order management.",
+      "Enabled user authentication and secure checkout flows."
+    ]
+  },
+  {
+    "name": "Reporting Form",
+    "about": "Reporting form for onboarding 1st year students.",
+    "skills": ["JavaScript", "React"],
+    "github": "https://github.com/Tarun08091997/ReportingForm2024_1stYear-",
+    "live": "",
+    "images": [
+      "/images/projects/reporting_1.png",
+      "/images/projects/reporting_2.png",
+      "/images/projects/reporting_3.png",
+      "/images/projects/reporting_4.png"
+    ],
+    "descriptionPoints": [
+      "Built form UI for student onboarding and details entry.",
+      "Saved submissions in structured JSON format.",
+      "Validated fields and performed client-side checks.",
+      "Generated registration summaries for backend storage.",
+      "Improved speed of onboarding process through automation."
+    ]
+  },
+  {
+    "name": "Snake Game",
+    "about": "Classic snake game using Python.",
+    "skills": ["Python"],
+    "github": "https://github.com/Tarun08091997/SnakeGame",
+    "live": "",
+    "images": [
+      "/images/projects/snake_1.png",
+      "/images/projects/snake_2.png",
+      "/images/projects/snake_3.png",
+      "/images/projects/snake_4.png"
+    ],
+    "descriptionPoints": [
+      "Implemented snake movement and collision detection.",
+      "Added scoring system and high score tracking.",
+      "Used Pygame for smooth UI and rendering.",
+      "Tested game loops and optimized key handling.",
+      "Packaged game for cross-platform execution."
+    ]
+  }
+]
