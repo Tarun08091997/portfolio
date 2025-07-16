@@ -1,0 +1,7 @@
+{
+  "Languages": ["JavaScript", "Python", "Java", "C", "C++"],
+  "Framework and Libraries": ["React", "Node.js", "Express.js", "Tailwind", "CSS"],
+  "Databases": ["MongoDB", "MySQL", "PostgreSQL"],
+  "Development Tools": ["Git", "Visual Studio Code", "Postman"],
+  "Other Skills": ["REST APIs", "JWT Auth", "Responsive Design", "CI/CD", "Docker", "Kubernetes"]
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "company": "CT University",
+    "role": "Assistant Professor & Software Developer",
+    "duration": "Aug 2023 – July 2025",
+    "responsibilities": [
+      "Taught undergraduate courses in Web Development, Data Structures, and Software Engineering.",
+      "Guided 50+ students in academic projects focused on MERN stack, system design, and automation.",
+      "Developed internal ERP tools to support academic administration (student registration, result management).",
+      "Designed and delivered lab sessions, assessments, and interactive assignments to improve conceptual clarity.",
+      "Mentored students for university-level project competitions and internal internships.",
+      "Played an instrumental role in automation of exam paper generation using AI-driven tools."
+    ]
+  }
+]
