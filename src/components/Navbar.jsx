@@ -1,47 +1,109 @@
-import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("about");
+  const { scrollY } = useScroll();
+  const backgroundColor = useTransform(
+    scrollY,
+    [0, 100],
+    ["rgba(255, 255, 255, 0.95)", "rgba(255, 255, 255, 1)"]
+  );
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+      
+      // Detect active section based on scroll position
+      const sections = ["about", "skills", "projects", "certificates", "experience", "education", "contact"];
+      const scrollPosition = window.scrollY + 100;
+      
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = document.getElementById(sections[i]);
+        if (section && section.offsetTop <= scrollPosition) {
+          setActiveSection(sections[i]);
+          break;
+        }
+      }
+    };
+    
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Initial check
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleNavClick = (sectionId, e) => {
+    e.preventDefault();
+    const section = document.getElementById(sectionId);
+    if (section) {
+      const offset = 80; // Account for navbar height
+      const elementPosition = section.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+    setMenuOpen(false);
+  };
 
   const navItems = [
-    { name: "Home", path: "/" },
-    { name: "Projects", path: "/projects" },
-    { name: "Certificates", path: "/certificates" },
-    { name: "Experience", path: "/experience" }
+    { name: "About", id: "about" },
+    { name: "Skills", id: "skills" },
+    { name: "Projects", id: "projects" },
+    { name: "Certificates", id: "certificates" },
+    { name: "Experience", id: "experience" },
+    { name: "Education", id: "education" },
+    { name: "Contact", id: "contact" }
   ];
 
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow-md">
+    <motion.nav 
+      className={`bg-white dark:bg-[#2E2E2E] border-b border-gray-200 dark:border-[#323232] transition-all duration-300 sticky top-0 z-50 ${
+        scrolled ? "shadow-lg dark:shadow-xl" : "shadow-md dark:shadow-lg"
+      }`}
+      style={{ 
+        backdropFilter: scrolled ? "blur(10px)" : "none",
+      }}
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo or Name */}
-          <Link to="/" className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-            
-          </Link>
+          <a 
+            href="#about" 
+            onClick={(e) => handleNavClick("about", e)}
+            className="text-xl font-bold text-[#2563EB] dark:text-[#FF652F] hover:text-[#2563EB]/80 dark:hover:text-[#FF652F]/80 transition-colors duration-300 cursor-pointer"
+          >
+            Portfolio
+          </a>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex space-x-6">
+          <div className="hidden md:flex space-x-6 items-center">
             {navItems.map((item) => (
-              <NavLink
-                key={item.name}
-                to={item.path}
-                className={({ isActive }) =>
-                  `text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 ${
-                    isActive ? "font-semibold text-indigo-600 dark:text-indigo-400" : ""
-                  }`
-                }
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                onClick={(e) => handleNavClick(item.id, e)}
+                className={`text-[#1E1E1E] dark:text-[#F5F5F5] hover:text-[#2563EB] dark:hover:text-[#FF652F] transition-colors duration-300 cursor-pointer ${
+                  activeSection === item.id ? "font-semibold text-[#2563EB] dark:text-[#FF652F]" : ""
+                }`}
               >
                 {item.name}
-              </NavLink>
+              </a>
             ))}
           </div>
 
           {/* Mobile Button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 focus:outline-none"
+              className="text-[#1E1E1E] dark:text-[#F5F5F5] hover:text-[#2563EB] dark:hover:text-[#FF652F] focus:outline-none transition-colors duration-300"
             >
               <svg
                 className="h-6 w-6"
@@ -63,24 +125,22 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden px-4 pb-4 space-y-2">
+        <div className="md:hidden px-4 pb-4 space-y-2 bg-white dark:bg-[#2E2E2E] transition-colors duration-300">
           {navItems.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.path}
-              onClick={() => setMenuOpen(false)}
-              className={({ isActive }) =>
-                `block text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 ${
-                  isActive ? "font-semibold text-indigo-600 dark:text-indigo-400" : ""
-                }`
-              }
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={(e) => handleNavClick(item.id, e)}
+              className={`block text-[#1E1E1E] dark:text-[#F5F5F5] hover:text-[#2563EB] dark:hover:text-[#FF652F] transition-colors duration-300 cursor-pointer ${
+                activeSection === item.id ? "font-semibold text-[#2563EB] dark:text-[#FF652F]" : ""
+              }`}
             >
               {item.name}
-            </NavLink>
+            </a>
           ))}
         </div>
       )}
-    </nav>
+    </motion.nav>
   );
 };
 

@@ -1,23 +1,23 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router } from "react-router-dom";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import Navbar from "./components/Navbar";
-import Home from "./components/Home";
-import Projects from "./components/Projects";
-import Certificates from "./components/Certificates";
-import Experience from "./components/Experience";
+import HomePage from "./components/HomePage";
+import ThemeToggle from "./components/ThemeToggle";
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/certificates" element={<Certificates />} />
-          <Route path="/experience" element={<Experience />} />
-        </Routes>
-      </div>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <div className="min-h-screen bg-transparent text-[#1E1E1E] dark:text-[#F5F5F5] transition-colors duration-300">
+          {/* Fixed Theme Toggle in Top Right Corner */}
+          <div className="fixed top-20 right-4 z-[100]">
+            <ThemeToggle />
+          </div>
+          <Navbar />
+          <HomePage />
+        </div>
+      </Router>
+    </ThemeProvider>
   );
 }
 

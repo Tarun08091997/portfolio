@@ -1,7 +1,77 @@
 [
   {
+    "name": "Medical Named Entity Recognition (NER) System",
+    "about": "AI-powered system to extract diseases, medicines, and medical codes from patient data images and PDFs.",
+    "category": "AI and Machine Learning",
+    "collaboration": "AlgoDel by Evernile",
+    "skills": ["Python", "NLP", "Named Entity Recognition", "Deep Learning", "TensorFlow", "PyTorch", "OCR", "Image Processing"],
+    "github": "",
+    "live": "",
+    "images": [],
+    "descriptionPoints": [
+      "Developed a Medical NER system to automatically identify and extract medical entities from unstructured patient data.",
+      "Processed images and PDFs containing medical records to extract diseases, medicines, and medical codes with high accuracy.",
+      "Implemented advanced NLP techniques and deep learning models for entity recognition in healthcare domain.",
+      "Enabled hospitals to digitize and structure patient data efficiently, reducing manual data entry time significantly.",
+      "Built robust preprocessing pipelines for handling various document formats and image qualities."
+    ]
+  },
+  {
+    "name": "Restaurant Sales Forecasting System",
+    "about": "Time-series forecasting model to predict daily item sales for restaurants and food courts.",
+    "category": "AI and Machine Learning",
+    "collaboration": "AlgoDel by Evernile",
+    "skills": ["Python", "Time Series Forecasting", "Machine Learning", "pandas", "scikit-learn", "Data Analysis", "Statistical Modeling"],
+    "github": "",
+    "live": "",
+    "images": [],
+    "descriptionPoints": [
+      "Developed forecasting models to predict daily item sales for restaurants and food courts.",
+      "Implemented time-series analysis techniques to identify patterns and seasonal trends in sales data.",
+      "Helped optimize inventory management and reduce food waste by accurately predicting demand.",
+      "Built data pipelines for collecting and processing historical sales data from multiple sources.",
+      "Created visualization dashboards to display forecasts and help management make data-driven decisions."
+    ]
+  },
+  {
+    "name": "Retail Store Analytics & Security System",
+    "about": "Computer vision system for theft recognition, customer behavior analysis, and employee monitoring in retail stores.",
+    "category": "AI and Machine Learning",
+    "collaboration": "AlgoDel by Evernile",
+    "skills": ["Python", "Computer Vision", "Object Detection", "Face Recognition", "OpenCV", "Deep Learning", "YOLO", "TensorFlow"],
+    "github": "",
+    "live": "",
+    "images": [],
+    "descriptionPoints": [
+      "Built intelligent surveillance system using computer vision for retail store security and analytics.",
+      "Implemented theft recognition algorithms to detect suspicious activities and alert store management in real-time.",
+      "Developed customer behavior analysis system to track shopping patterns and optimize store layout.",
+      "Created employee behavior monitoring solution to ensure compliance and improve operational efficiency.",
+      "Deployed real-time object detection and tracking models for continuous monitoring and analysis."
+    ]
+  },
+  {
+    "name": "Smart School Management System",
+    "about": "AI-powered system for footfall counting, attendance tracking, student recognition, and fight detection alerts.",
+    "category": "AI and Machine Learning",
+    "collaboration": "AlgoDel by Evernile",
+    "skills": ["Python", "Computer Vision", "Face Recognition", "Object Detection", "OpenCV", "Deep Learning", "Image Processing", "Real-time Processing"],
+    "github": "",
+    "live": "",
+    "images": [],
+    "descriptionPoints": [
+      "Developed comprehensive AI system for school management with multiple computer vision capabilities.",
+      "Implemented automated footfall counting system to track daily visitor and student traffic patterns.",
+      "Built face recognition-based attendance system eliminating manual attendance taking and reducing errors.",
+      "Created student recognition system for automated identification and access control.",
+      "Designed real-time fight detection and alert system to enhance school security and enable quick response to incidents."
+    ]
+  },
+  {
     "name": "Automatic Paper Generator",
     "about": "Tool to generate exam papers automatically using AI logic.",
+    "category": "Web Development",
+    "collaboration": "CT University",
     "skills": ["JavaScript", "React", "Node.js", "Python", "Tailwind", "SQL"],
     "github": "https://github.com/Tarun08091997/Automatic_Paper_Genrator",
     "live": "",
@@ -22,6 +92,8 @@
   {
     "name": "Mini ERP",
     "about": "ERP system for CT University for managing students and results.",
+    "category": "Web Development",
+    "collaboration": "CT University",
     "skills": ["JavaScript", "React", "Express", "Tailwind", "SQL"],
     "github": "https://github.com/Tarun08091997/miniERP",
     "live": "",
@@ -42,6 +114,8 @@
   {
     "name": "Event & Task Manager",
     "about": "Manages events and task distribution with hierarchy and scheduling checks.",
+    "category": "Web Development",
+    "collaboration": "CT University",
     "skills": ["MERN", "SQL", "Tailwind"],
     "github": "https://github.com/Tarun08091997/TaskManager",
     "live": "",
@@ -62,6 +136,8 @@
   {
     "name": "Feedback App",
     "about": "Feedback management system for CT University.",
+    "category": "Web Development",
+    "collaboration": "CT University",
     "skills": ["JavaScript", "React"],
     "github": "https://github.com/Tarun08091997/feedbackApp",
     "live": "",
@@ -82,6 +158,8 @@
   {
     "name": "Student Connect App",
     "about": "React Native app to connect students with university resources.",
+    "category": "Web Development",
+    "collaboration": "CT University",
     "skills": ["React Native", "TypeScript"],
     "github": "https://github.com/Tarun08091997/studentConnectApp",
     "live": "",
@@ -102,6 +180,8 @@
   {
     "name": "Ecommerce",
     "about": "MERN-based eCommerce site styled with Tailwind.",
+    "category": "Web Development",
+    "collaboration": "CT University",
     "skills": ["MERN", "Tailwind"],
     "github": "https://github.com/Tarun08091997/ecommerce",
     "live": "",
@@ -122,6 +202,8 @@
   {
     "name": "Reporting Form",
     "about": "Reporting form for onboarding 1st year students.",
+    "category": "Web Development",
+    "collaboration": "CT University",
     "skills": ["JavaScript", "React"],
     "github": "https://github.com/Tarun08091997/ReportingForm2024_1stYear-",
     "live": "",
@@ -142,6 +224,8 @@
   {
     "name": "Snake Game",
     "about": "Classic snake game using Python.",
+    "category": "Web Development",
+    "collaboration": "CT University",
     "skills": ["Python"],
     "github": "https://github.com/Tarun08091997/SnakeGame",
     "live": "",

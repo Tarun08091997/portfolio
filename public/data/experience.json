@@ -1,5 +1,18 @@
 [
   {
+    "company": "AlgoDel by Evernile",
+    "role": "Data Sciences Analyst",
+    "duration": "August 2025 – Present",
+    "responsibilities": [
+      "Developed and deployed computer vision solutions for image processing, OCR, face recognition, and object detection using deep learning frameworks.",
+      "Built intelligent information gathering systems for educational institutions including automated footfall counting, attendance tracking, student recognition, and real-time fight detection with alert mechanisms.",
+      "Designed and implemented retail analytics solutions featuring theft recognition, customer behavior analysis, and employee behavior monitoring to enhance store security and operational efficiency.",
+      "Created time-series forecasting models for restaurant and food court operations to predict daily item sales, optimizing inventory management and reducing food waste.",
+      "Developed Medical Named Entity Recognition (NER) systems to automatically extract and identify diseases, medicines, and medical codes from patient data images and PDFs, improving healthcare data processing efficiency.",
+      "Worked extensively with image processing pipelines, OCR technologies, and advanced ML models for real-world deployment in production environments."
+    ]
+  },
+  {
     "company": "CT University",
     "role": "Assistant Professor & Software Developer",
     "duration": "Aug 2023 – July 2025",

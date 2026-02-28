@@ -1,7 +1,9 @@
 {
-  "Languages": ["JavaScript", "Python", "Java", "C", "C++"],
-  "Framework and Libraries": ["React", "Node.js", "Express.js", "Tailwind", "CSS"],
+  "AI & Machine Learning": ["Python", "TensorFlow", "PyTorch", "scikit-learn", "Keras", "OpenCV", "Computer Vision", "Deep Learning", "Neural Networks"],
+  "Data Science & Analytics": ["pandas", "NumPy", "Matplotlib", "Seaborn", "Jupyter", "Data Analysis", "Statistical Modeling", "Time Series Forecasting", "NLP", "Named Entity Recognition"],
+  "Image Processing & Computer Vision": ["Image Processing", "OCR", "Face Recognition", "Object Detection", "YOLO", "Image Classification", "Feature Extraction"],
+  "Languages": ["Python", "JavaScript", "Java", "C", "C++"],
+  "Web Development": ["React", "Node.js", "Express.js", "Tailwind", "CSS"],
   "Databases": ["MongoDB", "MySQL", "PostgreSQL"],
-  "Development Tools": ["Git", "Visual Studio Code", "Postman"],
-  "Other Skills": ["REST APIs", "JWT Auth", "Responsive Design", "CI/CD", "Docker", "Kubernetes"]
+  "Development Tools": ["Git", "Visual Studio Code", "Postman", "Docker", "Kubernetes", "CI/CD"]
 }

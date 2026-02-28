@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#grad1)" stroke="#4f46e5" stroke-width="2"/>
+  
+  <!-- Neural network / Brain-inspired nodes and connections -->
+  <!-- Central node -->
+  <circle cx="50" cy="50" r="8" fill="#ffffff" opacity="0.95"/>
+  
+  <!-- Top nodes -->
+  <circle cx="35" cy="30" r="5" fill="#ffffff" opacity="0.9"/>
+  <circle cx="50" cy="25" r="5" fill="#ffffff" opacity="0.9"/>
+  <circle cx="65" cy="30" r="5" fill="#ffffff" opacity="0.9"/>
+  
+  <!-- Bottom nodes -->
+  <circle cx="30" cy="70" r="5" fill="#ffffff" opacity="0.9"/>
+  <circle cx="50" cy="75" r="5" fill="#ffffff" opacity="0.9"/>
+  <circle cx="70" cy="70" r="5" fill="#ffffff" opacity="0.9"/>
+  
+  <!-- Side nodes -->
+  <circle cx="25" cy="50" r="5" fill="#ffffff" opacity="0.9"/>
+  <circle cx="75" cy="50" r="5" fill="#ffffff" opacity="0.9"/>
+  
+  <!-- Connection lines (neural network style) -->
+  <line x1="50" y1="50" x2="35" y2="30" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="50" y1="50" x2="50" y2="25" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="50" y1="50" x2="65" y2="30" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="50" y1="50" x2="30" y2="70" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="50" y1="50" x2="50" y2="75" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="50" y1="50" x2="70" y2="70" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="50" y1="50" x2="25" y2="50" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="50" y1="50" x2="75" y2="50" stroke="#ffffff" stroke-width="1.5" opacity="0.6"/>
+  
+  <!-- Additional connections between outer nodes -->
+  <line x1="35" y1="30" x2="50" y2="25" stroke="#ffffff" stroke-width="1" opacity="0.4"/>
+  <line x1="50" y1="25" x2="65" y2="30" stroke="#ffffff" stroke-width="1" opacity="0.4"/>
+  <line x1="30" y1="70" x2="50" y2="75" stroke="#ffffff" stroke-width="1" opacity="0.4"/>
+  <line x1="50" y1="75" x2="70" y2="70" stroke="#ffffff" stroke-width="1" opacity="0.4"/>
+</svg>
+

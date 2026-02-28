@@ -2,11 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tarun Kumar</title>
-    <script type="module" crossorigin src="/assets/index-Do9kHVTM.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-B97VqWo4.css">
+    <script>
+      // Apply theme before React loads to prevent flash
+      (function() {
+        const theme = localStorage.getItem('theme') || 'light';
+        const root = document.documentElement;
+        if (theme === 'dark') {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-Cb13Xj3O.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-B0N8DZUV.css">
   </head>
   <body>
     <div id="root"></div>

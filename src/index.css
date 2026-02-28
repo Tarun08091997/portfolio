@@ -6,14 +6,39 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* Light Mode Colors */
+  --bg-primary: #FAFBFF;
+  --bg-secondary: #F5F7FA;
+  --bg-tertiary: #FFFFFF;
+  --text-primary: #1E1E1E;
+  --text-secondary: #4A5568;
+  --accent-primary: #2563EB;
+  --accent-highlight: #FFE400;
+  --accent-success: #14A76C;
+}
+
+.dark {
+  /* Dark Mode Colors */
+  --bg-primary: #272727;
+  --bg-secondary: #2E2E2E;
+  --bg-tertiary: #323232;
+  --text-primary: #F5F5F5;
+  --text-secondary: #747474;
+  --accent-primary: #2563EB;
+  --accent-highlight: #FFE400;
+  --accent-success: #14A76C;
+}
+
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
