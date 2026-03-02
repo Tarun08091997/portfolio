@@ -44,7 +44,7 @@ const Education = () => {
         {education.map((edu, index) => (
           <motion.div
             key={index}
-            className="p-6 rounded-xl bg-[#FAFBFF] dark:bg-[#323232] border border-gray-200 dark:border-[#3A3A3A] hover:border-[#2563EB]/50 dark:hover:border-[#FF652F]/50 hover:shadow-md dark:hover:shadow-lg transition-all duration-300"
+            className="p-6 rounded-xl bg-[#FAFBFF] dark:bg-[#323232] border border-gray-200 dark:border-[#3A3A3A] hover:border-[#2563EB]/50 dark:hover:border-[#FF652F]/50 hover:shadow-md dark:hover:shadow-lg transition-all duration-300 hover:scale-[1.2]"
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.3 }}

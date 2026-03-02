@@ -1,201 +1,438 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import NightSky from "./NightSky";
 
+const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+const createShader = (gl, type, source) => {
+  const shader = gl.createShader(type);
+  if (!shader) return null;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    gl.deleteShader(shader);
+    return null;
+  }
+  return shader;
+};
+
+const createProgram = (gl, vsSource, fsSource) => {
+  const vs = createShader(gl, gl.VERTEX_SHADER, vsSource);
+  const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+  if (!vs || !fs) return null;
+  const program = gl.createProgram();
+  if (!program) return null;
+  gl.attachShader(program, vs);
+  gl.attachShader(program, fs);
+  gl.linkProgram(program);
+  gl.deleteShader(vs);
+  gl.deleteShader(fs);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    gl.deleteProgram(program);
+    return null;
+  }
+  return program;
+};
+
+const createTexture = (gl, width, height) => {
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    width,
+    height,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    null
+  );
+  return tex;
+};
+
+const createFbo = (gl, texture) => {
+  const fbo = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+  return fbo;
+};
+
+const createTarget = (gl, width, height) => {
+  const texA = createTexture(gl, width, height);
+  const texB = createTexture(gl, width, height);
+  const fboA = createFbo(gl, texA);
+  const fboB = createFbo(gl, texB);
+  return {
+    read: { tex: texA, fbo: fboA },
+    write: { tex: texB, fbo: fboB },
+    swap() {
+      const t = this.read;
+      this.read = this.write;
+      this.write = t;
+    },
+  };
+};
+
+const baseVs = `
+attribute vec2 aPosition;
+varying vec2 vUv;
+void main() {
+  vUv = 0.5 * (aPosition + 1.0);
+  gl_Position = vec4(aPosition, 0.0, 1.0);
+}`;
+
+const advectionFs = `
+precision highp float;
+varying vec2 vUv;
+uniform sampler2D uSource;
+uniform sampler2D uVelocity;
+uniform vec2 uTexel;
+uniform float uDt;
+uniform float uDissipation;
+uniform float uVelocityScale;
+void main() {
+  vec2 vel = texture2D(uVelocity, vUv).xy * 2.0 - 1.0;
+  vec2 coord = vUv - uDt * vel * uVelocityScale * uTexel;
+  vec4 value = texture2D(uSource, coord);
+  gl_FragColor = value * uDissipation;
+}`;
+
+const velocityAdvectionFs = `
+precision highp float;
+varying vec2 vUv;
+uniform sampler2D uVelocitySource;
+uniform sampler2D uVelocityField;
+uniform vec2 uTexel;
+uniform float uDt;
+uniform float uDissipation;
+uniform float uVelocityScale;
+void main() {
+  vec2 flow = texture2D(uVelocityField, vUv).xy * 2.0 - 1.0;
+  vec2 coord = vUv - uDt * flow * uVelocityScale * uTexel;
+  vec2 sampled = texture2D(uVelocitySource, coord).xy * 2.0 - 1.0;
+  sampled *= uDissipation;
+  gl_FragColor = vec4(sampled * 0.5 + 0.5, 0.0, 1.0);
+}`;
+
+const splatFs = `
+precision highp float;
+varying vec2 vUv;
+uniform sampler2D uTarget;
+uniform vec2 uPoint;
+uniform vec3 uColor;
+uniform float uRadius;
+void main() {
+  vec4 base = texture2D(uTarget, vUv);
+  vec2 d = vUv - uPoint;
+  float splash = exp(-dot(d, d) / uRadius);
+  gl_FragColor = base + vec4(uColor * splash, 0.0);
+}`;
+
+const displayFs = `
+precision mediump float;
+varying vec2 vUv;
+uniform sampler2D uDye;
+void main() {
+  vec3 c = texture2D(uDye, vUv).rgb;
+  // Adjusted gamma for more subtle colors
+  c = pow(c, vec3(0.88));
+  // Reduced alpha multiplier to make colors less bright
+  float a = clamp(max(c.r, max(c.g, c.b)) * 1.1, 0.0, 1.0);
+  gl_FragColor = vec4(c, a);
+}`;
+
+const clearFs = `
+precision mediump float;
+varying vec2 vUv;
+uniform sampler2D uTarget;
+uniform float uDecay;
+void main() {
+  gl_FragColor = texture2D(uTarget, vUv) * uDecay;
+}`;
+
 const FluidBackground = () => {
   const { theme } = useTheme();
-  const containerRef = useRef(null);
-
-  // Light theme colors - vibrant multicolor
-  const lightColors = [
-    "#2563EB", // Blue
-    "#FF652F", // Orange
-    "#14A76C", // Green
-    "#FFE400", // Yellow
-    "#9333EA", // Purple
-    "#EC4899", // Pink
-  ];
-
-  // Dark theme colors - vibrant multicolor
-  const darkColors = [
-    "#3B82F6", // Bright Blue
-    "#FF652F", // Orange
-    "#10B981", // Bright Green
-    "#FBBF24", // Amber
-    "#A855F7", // Purple
-    "#F472B6", // Pink
-  ];
-
-  const colors = theme === "dark" ? darkColors : lightColors;
+  const mode = useMemo(() => (theme === "dark" ? "dark" : "light"), [theme]);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    // Only set up mouse tracking for light mode
-    if (theme === "dark") return;
+    if (mode !== "light") return undefined;
 
-    const handleMouseMove = (e) => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        
-        // Update CSS variables
-        if (containerRef.current) {
-          containerRef.current.style.setProperty('--mouse-x', `${x}%`);
-          containerRef.current.style.setProperty('--mouse-y', `${y}%`);
-        }
-      }
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+
+    const gl = canvas.getContext("webgl", {
+      alpha: true,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: false,
+    });
+    if (!gl) return undefined;
+
+    const quad = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+      gl.STATIC_DRAW
+    );
+
+    const advectionProgram = createProgram(gl, baseVs, advectionFs);
+    const velocityAdvectionProgram = createProgram(gl, baseVs, velocityAdvectionFs);
+    const splatProgram = createProgram(gl, baseVs, splatFs);
+    const displayProgram = createProgram(gl, baseVs, displayFs);
+    const clearProgram = createProgram(gl, baseVs, clearFs);
+    if (!advectionProgram || !velocityAdvectionProgram || !splatProgram || !displayProgram || !clearProgram) return undefined;
+
+    const bindQuad = (program) => {
+      gl.useProgram(program);
+      const loc = gl.getAttribLocation(program, "aPosition");
+      gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     };
 
-    const handleMouseLeave = () => {
-      if (containerRef.current) {
-        containerRef.current.style.setProperty('--mouse-x', '50%');
-        containerRef.current.style.setProperty('--mouse-y', '50%');
-      }
+    let dpr = 1;
+    let simW = 0;
+    let simH = 0;
+    let velocity = null;
+    let dye = null;
+    let raf = 0;
+    let lastTime = performance.now();
+    let hue = 0;
+
+    const pointer = { x: 0, y: 0, dx: 0, dy: 0, down: false, init: false };
+    const splats = [];
+
+    const hslToRgb = (h, s, l) => {
+      const a = s * Math.min(l, 1 - l);
+      const f = (n) => {
+        const k = (n + h * 12) % 12;
+        return l - a * Math.max(-1, Math.min(k - 3, Math.min(9 - k, 1)));
+      };
+      return [f(0), f(8), f(4)];
     };
 
-    // Attach to document for better tracking
-    document.addEventListener("mousemove", handleMouseMove);
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener("mouseleave", handleMouseLeave);
-    }
+    const resize = () => {
+      dpr = clamp(window.devicePixelRatio || 1, 1, 2);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+
+      simW = clamp(Math.floor(w * 0.27), 160, 360);
+      simH = clamp(Math.floor(h * 0.27), 90, 220);
+      velocity = createTarget(gl, simW, simH);
+      dye = createTarget(gl, simW, simH);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, velocity.read.fbo);
+      gl.clearColor(0.5, 0.5, 0.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, velocity.write.fbo);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, dye.read.fbo);
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, dye.write.fbo);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    };
+
+    const drawTo = (targetFbo, width, height) => {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, targetFbo);
+      gl.viewport(0, 0, width, height);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    };
+
+    const runAdvection = (target, velField, dt, dissipation, velScale) => {
+      bindQuad(advectionProgram);
+      gl.uniform1f(gl.getUniformLocation(advectionProgram, "uDt"), dt);
+      gl.uniform1f(gl.getUniformLocation(advectionProgram, "uDissipation"), dissipation);
+      gl.uniform1f(gl.getUniformLocation(advectionProgram, "uVelocityScale"), velScale);
+      gl.uniform2f(gl.getUniformLocation(advectionProgram, "uTexel"), 1 / simW, 1 / simH);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, target.read.tex);
+      gl.uniform1i(gl.getUniformLocation(advectionProgram, "uSource"), 0);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, velField.read.tex);
+      gl.uniform1i(gl.getUniformLocation(advectionProgram, "uVelocity"), 1);
+      drawTo(target.write.fbo, simW, simH);
+      target.swap();
+    };
+
+    const runVelocityAdvection = (target, velField, dt, dissipation, velScale) => {
+      bindQuad(velocityAdvectionProgram);
+      gl.uniform1f(gl.getUniformLocation(velocityAdvectionProgram, "uDt"), dt);
+      gl.uniform1f(gl.getUniformLocation(velocityAdvectionProgram, "uDissipation"), dissipation);
+      gl.uniform1f(gl.getUniformLocation(velocityAdvectionProgram, "uVelocityScale"), velScale);
+      gl.uniform2f(gl.getUniformLocation(velocityAdvectionProgram, "uTexel"), 1 / simW, 1 / simH);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, target.read.tex);
+      gl.uniform1i(gl.getUniformLocation(velocityAdvectionProgram, "uVelocitySource"), 0);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, velField.read.tex);
+      gl.uniform1i(gl.getUniformLocation(velocityAdvectionProgram, "uVelocityField"), 1);
+      drawTo(target.write.fbo, simW, simH);
+      target.swap();
+    };
+
+    const runDecay = (target, decay) => {
+      bindQuad(clearProgram);
+      gl.uniform1f(gl.getUniformLocation(clearProgram, "uDecay"), decay);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, target.read.tex);
+      gl.uniform1i(gl.getUniformLocation(clearProgram, "uTarget"), 0);
+      drawTo(target.write.fbo, simW, simH);
+      target.swap();
+    };
+
+    const runSplat = (target, x, y, rgb, radius) => {
+      bindQuad(splatProgram);
+      gl.uniform2f(gl.getUniformLocation(splatProgram, "uPoint"), x, y);
+      gl.uniform3f(gl.getUniformLocation(splatProgram, "uColor"), rgb[0], rgb[1], rgb[2]);
+      gl.uniform1f(gl.getUniformLocation(splatProgram, "uRadius"), radius);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, target.read.tex);
+      gl.uniform1i(gl.getUniformLocation(splatProgram, "uTarget"), 0);
+      drawTo(target.write.fbo, simW, simH);
+      target.swap();
+    };
+
+    const display = () => {
+      bindQuad(displayProgram);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, dye.read.tex);
+      gl.uniform1i(gl.getUniformLocation(displayProgram, "uDye"), 0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    };
+
+    const pushPointerSplat = () => {
+      if (!pointer.init) return;
+      const nx = pointer.x / window.innerWidth;
+      const ny = 1 - pointer.y / window.innerHeight;
+      const speed = Math.hypot(pointer.dx, pointer.dy);
+      // Increased threshold to prevent white blob when cursor is stationary or moving slowly
+      if (speed < 1.5) return;
+      hue = (hue + 0.013) % 1;
+      // Reduced saturation (0.7) and lightness (0.45) to make colors duller
+      const rgb = hslToRgb(hue, 0.7, 0.45);
+      // Reduced force multiplier to minimize white blob
+      const force = clamp(speed * 0.015, 0.2, 1.5);
+      const angle = performance.now() * 0.01;
+      const fx = Math.cos(angle) * force * 0.28;
+      const fy = Math.sin(angle) * force * 0.28;
+      const ox = Math.cos(angle + Math.PI * 0.5) * 0.0022;
+      const oy = Math.sin(angle + Math.PI * 0.5) * 0.0022;
+
+      // Balanced pair keeps net directional momentum near zero (no gravity-like pull).
+      splats.push({
+        x: clamp(nx + ox, 0.01, 0.99),
+        y: clamp(ny + oy, 0.01, 0.99),
+        color: rgb,
+        force: [fx, fy, 0],
+        radius: 0.00022 + force * 0.00028,
+      });
+      splats.push({
+        x: clamp(nx - ox, 0.01, 0.99),
+        y: clamp(ny - oy, 0.01, 0.99),
+        color: rgb,
+        force: [-fx, -fy, 0],
+        radius: 0.00022 + force * 0.00028,
+      });
+    };
+
+    const render = (t) => {
+      const dt = clamp((t - lastTime) / 1000, 0.008, 0.033);
+      lastTime = t;
+
+      runVelocityAdvection(velocity, velocity, dt, 0.985, 18.0);
+      // Increased dye dissipation (0.996) to help colors fade faster
+      runAdvection(dye, velocity, dt, 0.996, 24.0);
+      // Increased decay rate (0.9992) to fix permanent color marks - colors fade back to white faster
+      runDecay(dye, 0.9992);
+
+      while (splats.length) {
+        const s = splats.shift();
+        runSplat(velocity, s.x, s.y, [0.5 + s.force[0], 0.5 + s.force[1], 0], s.radius);
+        // Reduced color multiplier (0.4) to make colors less bright, increased radius (2.2) for wider spread
+        runSplat(dye, s.x, s.y, [s.color[0] * 0.4, s.color[1] * 0.4, s.color[2] * 0.4], s.radius * 2.2);
+      }
+
+      display();
+      raf = requestAnimationFrame(render);
+    };
+
+    const onPointerMove = (e) => {
+      const x = e.clientX;
+      const y = e.clientY;
+      if (!pointer.init) {
+        pointer.init = true;
+        pointer.x = x;
+        pointer.y = y;
+      }
+      pointer.dx = x - pointer.x;
+      pointer.dy = y - pointer.y;
+      pointer.x = x;
+      pointer.y = y;
+      pushPointerSplat();
+    };
+
+    const onTouchMove = (e) => {
+      if (!e.touches || e.touches.length === 0) return;
+      onPointerMove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
+    };
+
+    resize();
+    raf = requestAnimationFrame(render);
+    window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
 
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      if (container) {
-        container.removeEventListener("mouseleave", handleMouseLeave);
-      }
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("touchmove", onTouchMove);
     };
-  }, [theme]);
+  }, [mode]);
 
-  // Render different backgrounds based on theme
-  if (theme === "dark") {
+  if (mode === "dark") {
     return (
       <div
-        className="fixed inset-0 -z-10 overflow-hidden"
-        style={{
-          background: "linear-gradient(180deg, #000000 0%, #000000 50%, #000000 100%)",
-          pointerEvents: "none",
-        }}
+        className="fixed inset-0 z-0 overflow-hidden"
+        style={{ background: "linear-gradient(180deg, #000000 0%, #000000 100%)", pointerEvents: "none" }}
+        aria-hidden="true"
       >
         <NightSky />
-        {/* Very subtle overlay for content readability - reduced opacity */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "radial-gradient(circle at center, rgba(0, 0, 0, 0.22) 0%, rgba(0, 0, 0, 0.42) 100%)",
-          }}
-        />
       </div>
     );
   }
 
-  // Light mode: Fluid background with cursor interaction
   return (
-    <>
-      <style>{`
-        @keyframes float-0 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(30px, -30px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-        }
-        @keyframes float-1 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(-25px, 25px) scale(1.15); }
-          66% { transform: translate(25px, -25px) scale(0.85); }
-        }
-        @keyframes float-2 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(20px, 30px) scale(1.2); }
-          66% { transform: translate(-30px, -20px) scale(0.8); }
-        }
-        @keyframes float-3 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(-30px, -30px) scale(1.1); }
-          66% { transform: translate(30px, 30px) scale(0.9); }
-        }
-        @keyframes float-4 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(25px, -20px) scale(1.15); }
-          66% { transform: translate(-25px, 20px) scale(0.85); }
-        }
-        @keyframes float-5 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(-20px, 25px) scale(1.2); }
-          66% { transform: translate(20px, -25px) scale(0.8); }
-        }
-      `}</style>
-      
-      <div
-        ref={containerRef}
-        className="fixed inset-0 -z-10 overflow-hidden"
-        style={{
-          "--mouse-x": "50%",
-          "--mouse-y": "50%",
-          background: "linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 50%, #ddd6fe 100%)",
-          pointerEvents: "none",
-        }}
-      >
-        {/* Animated gradient blobs using CSS */}
-        {colors.map((color, index) => {
-          const size = 200 + index * 50;
-          const leftPercent = index * 15;
-          const topPercent = index * 20;
-          
-          return (
-            <div
-              key={`blob-${index}`}
-              className="absolute rounded-full"
-              style={{
-                width: `${size}px`,
-                height: `${size}px`,
-                background: `radial-gradient(circle, ${color} 0%, rgba(255,255,255,0) 72%)`,
-                opacity: 0.5,
-                filter: "blur(42px) saturate(130%)",
-                left: `${leftPercent}%`,
-                top: `${topPercent}%`,
-                animation: `float-${index} ${15 + index * 2}s ease-in-out infinite`,
-                mixBlendMode: "multiply",
-                willChange: "transform",
-              }}
-            />
-          );
-        })}
-
-        {/* Cursor-following blobs */}
-        {colors.slice(0, 3).map((color, index) => {
-          const size = 150 + index * 40;
-          
-          return (
-            <div
-              key={`cursor-blob-${index}`}
-              className="absolute rounded-full"
-              style={{
-                width: `${size}px`,
-                height: `${size}px`,
-                background: `radial-gradient(circle, ${color} 0%, rgba(255,255,255,0) 72%)`,
-                opacity: 0.35,
-                filter: "blur(52px) saturate(140%)",
-                left: `var(--mouse-x, 50%)`,
-                top: `var(--mouse-y, 50%)`,
-                transform: "translate(-50%, -50%)",
-                transition: "left 0.2s cubic-bezier(0.4, 0, 0.2, 1), top 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                mixBlendMode: "multiply",
-                willChange: "left, top",
-              }}
-            />
-          );
-        })}
-
-        {/* Additional overlay for smoother blending */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "radial-gradient(circle at center, rgba(255, 255, 255, 0) 0%, rgba(240, 243, 255, 0.38) 100%)",
-          }}
-        />
-      </div>
-    </>
+    <div
+      className="fixed inset-0 z-0 overflow-hidden"
+      style={{
+        pointerEvents: "none",
+        background: "#ffffff",
+      }}
+      aria-hidden="true"
+    >
+      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+    </div>
   );
 };
 

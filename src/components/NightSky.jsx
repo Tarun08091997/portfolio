@@ -106,14 +106,38 @@ const NightSky = () => {
 
     class Comet {
       constructor() {
-        this.x = window.innerWidth + 120;
-        this.y = Math.random() * (window.innerHeight * 0.45) + 20;
-        this.vx = -(Math.random() * 5 + 6.5);
-        this.vy = Math.random() * 1.6 + 1;
-        this.length = Math.random() * 110 + 120;
-        this.width = Math.random() * 0.8 + 0.6;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const margin = 180;
+        const side = Math.floor(Math.random() * 4); // 0 top, 1 right, 2 bottom, 3 left
+
+        if (side === 0) {
+          this.x = Math.random() * width;
+          this.y = -margin;
+        } else if (side === 1) {
+          this.x = width + margin;
+          this.y = Math.random() * height;
+        } else if (side === 2) {
+          this.x = Math.random() * width;
+          this.y = height + margin;
+        } else {
+          this.x = -margin;
+          this.y = Math.random() * height;
+        }
+
+        const targetX = Math.random() * width;
+        const targetY = Math.random() * height;
+        const dirX = targetX - this.x;
+        const dirY = targetY - this.y;
+        const magnitude = Math.hypot(dirX, dirY) || 1;
+        const speed = Math.random() * 5 + 4.5;
+
+        this.vx = (dirX / magnitude) * speed;
+        this.vy = (dirY / magnitude) * speed;
+        this.length = Math.random() * 130 + 110;
+        this.width = Math.random() * 1.15 + 0.7;
         this.life = 0;
-        this.maxLife = Math.floor(Math.random() * 45 + 95);
+        this.maxLife = Math.floor(Math.random() * 120 + 120);
       }
 
       update() {
@@ -145,10 +169,13 @@ const NightSky = () => {
       }
 
       isDead() {
+        const margin = 260;
         return (
           this.life > this.maxLife ||
-          this.x < -200 ||
-          this.y > window.innerHeight + 100
+          this.x < -margin ||
+          this.x > window.innerWidth + margin ||
+          this.y < -margin ||
+          this.y > window.innerHeight + margin
         );
       }
     }
@@ -228,9 +255,10 @@ const NightSky = () => {
     };
 
     const drawMilkyWay = () => {};
-    let activeComet = null;
+    const activeComets = [];
     let lastCometTime = 0;
-    let nextCometDelay = Math.random() * 70000 + 90000;
+    let nextCometDelay = Math.random() * 2200 + 800;
+    const maxComets = 6;
 
     // Animation loop
     const animate = (timestamp = 0) => {
@@ -263,17 +291,18 @@ const NightSky = () => {
         star.draw();
       });
 
-      if (!activeComet && timestamp - lastCometTime > nextCometDelay) {
-        activeComet = new Comet();
+      if (timestamp - lastCometTime > nextCometDelay && activeComets.length < maxComets) {
+        activeComets.push(new Comet());
         lastCometTime = timestamp;
-        nextCometDelay = Math.random() * 100000 + 120000;
+        nextCometDelay = Math.random() * 2600 + 700;
       }
 
-      if (activeComet) {
-        activeComet.update();
-        activeComet.draw();
-        if (activeComet.isDead()) {
-          activeComet = null;
+      for (let i = activeComets.length - 1; i >= 0; i -= 1) {
+        const comet = activeComets[i];
+        comet.update();
+        comet.draw();
+        if (comet.isDead()) {
+          activeComets.splice(i, 1);
         }
       }
 

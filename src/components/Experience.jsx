@@ -27,7 +27,7 @@ const Experience = () => {
         {experiences.map((exp, index) => (
           <motion.div
             key={index}
-            className="bg-white dark:bg-[#2E2E2E] p-6 rounded-xl shadow-md dark:shadow-lg border-l-4 border-[#2563EB] dark:border-[#FF652F] hover:shadow-lg dark:hover:shadow-xl transition-all duration-300"
+            className="bg-white dark:bg-[#2E2E2E] p-6 rounded-xl shadow-md dark:shadow-lg border-l-4 border-[#2563EB] dark:border-[#FF652F] hover:shadow-lg dark:hover:shadow-xl transition-all duration-300 hover:scale-[1.2]"
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.3 }}
