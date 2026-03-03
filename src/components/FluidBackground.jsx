@@ -139,9 +139,8 @@ varying vec2 vUv;
 uniform sampler2D uDye;
 void main() {
   vec3 c = texture2D(uDye, vUv).rgb;
-  // Boost colors for vivid chromatic dispersion
-  c = pow(c, vec3(0.85));
-  float a = clamp(max(c.r, max(c.g, c.b)) * 1.4, 0.0, 1.0);
+  c = pow(c, vec3(0.9));
+  float a = clamp(max(c.r, max(c.g, c.b)) * 1.2, 0.0, 0.95);
   gl_FragColor = vec4(c, a);
 }`;
 
@@ -324,31 +323,29 @@ const FluidBackground = () => {
       const nx = pointer.x / window.innerWidth;
       const ny = 1 - pointer.y / window.innerHeight;
       const speed = Math.hypot(pointer.dx, pointer.dy);
-      if (speed < 0.5) return;
-      // Cycle hue faster for rainbow chromatic dispersion
-      hue = (hue + 0.025) % 1;
-      // Vivid, saturated colors like toukoum.fr
-      const rgb = hslToRgb(hue, 0.9, 0.55);
-      const force = clamp(speed * 0.02, 0.3, 2.0);
+      if (speed < 1.0) return;
+      hue = (hue + 0.02) % 1;
+      const rgb = hslToRgb(hue, 0.85, 0.55);
+      const force = clamp(speed * 0.015, 0.2, 1.5);
       const angle = performance.now() * 0.008;
-      const fx = Math.cos(angle) * force * 0.35;
-      const fy = Math.sin(angle) * force * 0.35;
-      const ox = Math.cos(angle + Math.PI * 0.5) * 0.004;
-      const oy = Math.sin(angle + Math.PI * 0.5) * 0.004;
+      const fx = Math.cos(angle) * force * 0.3;
+      const fy = Math.sin(angle) * force * 0.3;
+      const ox = Math.cos(angle + Math.PI * 0.5) * 0.003;
+      const oy = Math.sin(angle + Math.PI * 0.5) * 0.003;
 
       splats.push({
         x: clamp(nx + ox, 0.01, 0.99),
         y: clamp(ny + oy, 0.01, 0.99),
         color: rgb,
         force: [fx, fy, 0],
-        radius: 0.002 + force * 0.001,
+        radius: 0.0008 + force * 0.0005,
       });
       splats.push({
         x: clamp(nx - ox, 0.01, 0.99),
         y: clamp(ny - oy, 0.01, 0.99),
         color: rgb,
         force: [-fx, -fy, 0],
-        radius: 0.002 + force * 0.001,
+        radius: 0.0008 + force * 0.0005,
       });
     };
 
@@ -356,15 +353,14 @@ const FluidBackground = () => {
       const dt = clamp((t - lastTime) / 1000, 0.008, 0.033);
       lastTime = t;
 
-      runVelocityAdvection(velocity, velocity, dt, 0.99, 22.0);
-      runAdvection(dye, velocity, dt, 0.998, 28.0);
-      runDecay(dye, 0.9996);
+      runVelocityAdvection(velocity, velocity, dt, 0.98, 20.0);
+      runAdvection(dye, velocity, dt, 0.99, 24.0);
+      runDecay(dye, 0.997);
 
       while (splats.length) {
         const s = splats.shift();
         runSplat(velocity, s.x, s.y, [0.5 + s.force[0], 0.5 + s.force[1], 0], s.radius);
-        // Bold color splats with wide radius for chromatic dispersion
-        runSplat(dye, s.x, s.y, [s.color[0] * 0.6, s.color[1] * 0.6, s.color[2] * 0.6], s.radius * 2.5);
+        runSplat(dye, s.x, s.y, [s.color[0] * 0.45, s.color[1] * 0.45, s.color[2] * 0.45], s.radius * 2.0);
       }
 
       display();
