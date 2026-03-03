@@ -139,10 +139,10 @@ varying vec2 vUv;
 uniform sampler2D uDye;
 void main() {
   vec3 c = texture2D(uDye, vUv).rgb;
-  // Adjusted gamma for more subtle colors
-  c = pow(c, vec3(0.88));
-  // Reduced alpha multiplier to make colors less bright
-  float a = clamp(max(c.r, max(c.g, c.b)) * 1.1, 0.0, 1.0);
+  // Softer gamma for gentle pastel colors
+  c = pow(c, vec3(1.2));
+  // Lower alpha for a more subtle, diffused look
+  float a = clamp(max(c.r, max(c.g, c.b)) * 0.7, 0.0, 0.85);
   gl_FragColor = vec4(c, a);
 }`;
 
@@ -328,10 +328,10 @@ const FluidBackground = () => {
       // Increased threshold to prevent white blob when cursor is stationary or moving slowly
       if (speed < 1.5) return;
       hue = (hue + 0.013) % 1;
-      // Reduced saturation (0.7) and lightness (0.45) to make colors duller
-      const rgb = hslToRgb(hue, 0.7, 0.45);
-      // Reduced force multiplier to minimize white blob
-      const force = clamp(speed * 0.015, 0.2, 1.5);
+      // Softer, more pastel colors with lower saturation and lightness
+      const rgb = hslToRgb(hue, 0.55, 0.5);
+      // Gentler force for smoother, wider spread
+      const force = clamp(speed * 0.01, 0.15, 1.0);
       const angle = performance.now() * 0.01;
       const fx = Math.cos(angle) * force * 0.28;
       const fy = Math.sin(angle) * force * 0.28;
@@ -344,14 +344,14 @@ const FluidBackground = () => {
         y: clamp(ny + oy, 0.01, 0.99),
         color: rgb,
         force: [fx, fy, 0],
-        radius: 0.00022 + force * 0.00028,
+        radius: 0.0006 + force * 0.0006,
       });
       splats.push({
         x: clamp(nx - ox, 0.01, 0.99),
         y: clamp(ny - oy, 0.01, 0.99),
         color: rgb,
         force: [-fx, -fy, 0],
-        radius: 0.00022 + force * 0.00028,
+        radius: 0.0006 + force * 0.0006,
       });
     };
 
@@ -368,8 +368,8 @@ const FluidBackground = () => {
       while (splats.length) {
         const s = splats.shift();
         runSplat(velocity, s.x, s.y, [0.5 + s.force[0], 0.5 + s.force[1], 0], s.radius);
-        // Reduced color multiplier (0.4) to make colors less bright, increased radius (2.2) for wider spread
-        runSplat(dye, s.x, s.y, [s.color[0] * 0.4, s.color[1] * 0.4, s.color[2] * 0.4], s.radius * 2.2);
+        // Lower color intensity with wider radius for soft, diffused splats
+        runSplat(dye, s.x, s.y, [s.color[0] * 0.25, s.color[1] * 0.25, s.color[2] * 0.25], s.radius * 3.5);
       }
 
       display();
