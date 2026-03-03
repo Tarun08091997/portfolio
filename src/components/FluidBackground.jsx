@@ -139,10 +139,9 @@ varying vec2 vUv;
 uniform sampler2D uDye;
 void main() {
   vec3 c = texture2D(uDye, vUv).rgb;
-  // Softer gamma for gentle pastel colors
-  c = pow(c, vec3(1.2));
-  // Lower alpha for a more subtle, diffused look
-  float a = clamp(max(c.r, max(c.g, c.b)) * 0.7, 0.0, 0.85);
+  // Boost colors for vivid chromatic dispersion
+  c = pow(c, vec3(0.85));
+  float a = clamp(max(c.r, max(c.g, c.b)) * 1.4, 0.0, 1.0);
   gl_FragColor = vec4(c, a);
 }`;
 
@@ -325,33 +324,31 @@ const FluidBackground = () => {
       const nx = pointer.x / window.innerWidth;
       const ny = 1 - pointer.y / window.innerHeight;
       const speed = Math.hypot(pointer.dx, pointer.dy);
-      // Increased threshold to prevent white blob when cursor is stationary or moving slowly
-      if (speed < 1.5) return;
-      hue = (hue + 0.013) % 1;
-      // Softer, more pastel colors with lower saturation and lightness
-      const rgb = hslToRgb(hue, 0.55, 0.5);
-      // Gentler force for smoother, wider spread
-      const force = clamp(speed * 0.01, 0.15, 1.0);
-      const angle = performance.now() * 0.01;
-      const fx = Math.cos(angle) * force * 0.28;
-      const fy = Math.sin(angle) * force * 0.28;
-      const ox = Math.cos(angle + Math.PI * 0.5) * 0.0022;
-      const oy = Math.sin(angle + Math.PI * 0.5) * 0.0022;
+      if (speed < 0.5) return;
+      // Cycle hue faster for rainbow chromatic dispersion
+      hue = (hue + 0.025) % 1;
+      // Vivid, saturated colors like toukoum.fr
+      const rgb = hslToRgb(hue, 0.9, 0.55);
+      const force = clamp(speed * 0.02, 0.3, 2.0);
+      const angle = performance.now() * 0.008;
+      const fx = Math.cos(angle) * force * 0.35;
+      const fy = Math.sin(angle) * force * 0.35;
+      const ox = Math.cos(angle + Math.PI * 0.5) * 0.004;
+      const oy = Math.sin(angle + Math.PI * 0.5) * 0.004;
 
-      // Balanced pair keeps net directional momentum near zero (no gravity-like pull).
       splats.push({
         x: clamp(nx + ox, 0.01, 0.99),
         y: clamp(ny + oy, 0.01, 0.99),
         color: rgb,
         force: [fx, fy, 0],
-        radius: 0.0006 + force * 0.0006,
+        radius: 0.002 + force * 0.001,
       });
       splats.push({
         x: clamp(nx - ox, 0.01, 0.99),
         y: clamp(ny - oy, 0.01, 0.99),
         color: rgb,
         force: [-fx, -fy, 0],
-        radius: 0.0006 + force * 0.0006,
+        radius: 0.002 + force * 0.001,
       });
     };
 
@@ -359,17 +356,15 @@ const FluidBackground = () => {
       const dt = clamp((t - lastTime) / 1000, 0.008, 0.033);
       lastTime = t;
 
-      runVelocityAdvection(velocity, velocity, dt, 0.985, 18.0);
-      // Increased dye dissipation (0.996) to help colors fade faster
-      runAdvection(dye, velocity, dt, 0.996, 24.0);
-      // Increased decay rate (0.9992) to fix permanent color marks - colors fade back to white faster
-      runDecay(dye, 0.9992);
+      runVelocityAdvection(velocity, velocity, dt, 0.99, 22.0);
+      runAdvection(dye, velocity, dt, 0.998, 28.0);
+      runDecay(dye, 0.9996);
 
       while (splats.length) {
         const s = splats.shift();
         runSplat(velocity, s.x, s.y, [0.5 + s.force[0], 0.5 + s.force[1], 0], s.radius);
-        // Lower color intensity with wider radius for soft, diffused splats
-        runSplat(dye, s.x, s.y, [s.color[0] * 0.25, s.color[1] * 0.25, s.color[2] * 0.25], s.radius * 3.5);
+        // Bold color splats with wide radius for chromatic dispersion
+        runSplat(dye, s.x, s.y, [s.color[0] * 0.6, s.color[1] * 0.6, s.color[2] * 0.6], s.radius * 2.5);
       }
 
       display();
