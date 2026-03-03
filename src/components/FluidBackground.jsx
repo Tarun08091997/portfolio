@@ -167,15 +167,28 @@ const FluidBackground = () => {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
 
-    const gl = canvas.getContext("webgl", {
-      alpha: true,
-      antialias: false,
-      depth: false,
-      stencil: false,
-      premultipliedAlpha: true,
-      preserveDrawingBuffer: false,
-    });
-    if (!gl) return undefined;
+    let cleanup = null;
+
+    // Clean up any existing WebGL context first
+    const existingContext = canvas.getContext("webgl") || canvas.getContext("webgl2");
+    if (existingContext) {
+      const loseContext = existingContext.getExtension("WEBGL_lose_context");
+      if (loseContext) {
+        loseContext.loseContext();
+      }
+    }
+
+    // Small delay to ensure cleanup is complete before initializing
+    const initTimeout = setTimeout(() => {
+      const gl = canvas.getContext("webgl", {
+        alpha: true,
+        antialias: false,
+        depth: false,
+        stencil: false,
+        premultipliedAlpha: true,
+        preserveDrawingBuffer: false,
+      });
+      if (!gl) return;
 
     const quad = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
@@ -200,14 +213,14 @@ const FluidBackground = () => {
       gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     };
 
-    let dpr = 1;
-    let simW = 0;
-    let simH = 0;
-    let velocity = null;
-    let dye = null;
-    let raf = 0;
-    let lastTime = performance.now();
-    let hue = 0;
+      let dpr = 1;
+      let simW = 0;
+      let simH = 0;
+      let velocity = null;
+      let dye = null;
+      let animationRaf = 0;
+      let lastTime = performance.now();
+      let hue = 0;
 
     const pointer = { x: 0, y: 0, dx: 0, dy: 0, down: false, init: false };
     const splats = [];
@@ -367,7 +380,7 @@ const FluidBackground = () => {
       }
 
       display();
-      raf = requestAnimationFrame(render);
+      animationRaf = requestAnimationFrame(render);
     };
 
     const onPointerMove = (e) => {
@@ -390,17 +403,31 @@ const FluidBackground = () => {
       onPointerMove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
     };
 
-    resize();
-    raf = requestAnimationFrame(render);
-    window.addEventListener("resize", resize);
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: true });
+      resize();
+      animationRaf = requestAnimationFrame(render);
+      window.addEventListener("resize", resize);
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      window.addEventListener("touchmove", onTouchMove, { passive: true });
+
+      cleanup = () => {
+        cancelAnimationFrame(animationRaf);
+        window.removeEventListener("resize", resize);
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("touchmove", onTouchMove);
+        
+        // Clean up WebGL resources
+        const loseContext = gl.getExtension("WEBGL_lose_context");
+        if (loseContext) {
+          loseContext.loseContext();
+        }
+      };
+    }, 50);
 
     return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("touchmove", onTouchMove);
+      clearTimeout(initTimeout);
+      if (cleanup) {
+        cleanup();
+      }
     };
   }, [mode]);
 

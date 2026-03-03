@@ -6,7 +6,7 @@ import Certificates from "./Certificates";
 import Experience from "./Experience";
 import Education from "./Education";
 import Contact from "./Contact";
-import FluidBackground from "./FluidBackground";
+import AdvancedFluidBackground from "./AdvancedFluidBackground";
 
 const HomePage = () => {
   useEffect(() => {
@@ -37,7 +37,7 @@ const HomePage = () => {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0">
-        <FluidBackground />
+        <AdvancedFluidBackground />
       </div>
       <div className="relative z-10">
         {/* About Section */}

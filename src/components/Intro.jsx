@@ -45,7 +45,7 @@ const Intro = () => {
           {description.map((line, index) => (
             <motion.p
               key={index}
-              className="text-base md:text-lg max-w-2xl mx-auto text-[#4A5568] dark:text-[#747474] leading-relaxed transition-colors duration-300"
+              className="text-base md:text-lg max-w-2xl mx-auto text-[#4A5568] dark:text-white leading-relaxed transition-colors duration-300"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}

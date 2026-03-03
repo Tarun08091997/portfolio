@@ -11,11 +11,14 @@ const NightSky = () => {
     let animationFrameId;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    // Set canvas size
+    // Set canvas size - covers full document height for scrolling
     const resizeCanvas = () => {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       const width = window.innerWidth;
-      const height = window.innerHeight;
+      const bodyHeight = document.body ? document.body.scrollHeight : 0;
+      const htmlHeight = document.documentElement.scrollHeight;
+      const viewportHeight = window.innerHeight;
+      const height = Math.max(viewportHeight, htmlHeight, bodyHeight, viewportHeight * 2);
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       canvas.style.width = `${width}px`;
@@ -24,83 +27,123 @@ const NightSky = () => {
     };
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("scroll", resizeCanvas);
+    
+    // Recalculate on load to ensure full document height
+    window.addEventListener("load", () => {
+      resizeCanvas();
+      setTimeout(resizeCanvas, 100);
+    });
 
-    // Star class
+    // Star class with layer-based system
     class Star {
-      constructor(isMilkyWay = false, isStatic = false) {
-        this.isMilkyWay = isMilkyWay;
-        this.isStatic = isStatic;
-        if (isMilkyWay) {
-          // Stars in the Milky Way band (diagonal across screen)
-          const centerY = window.innerHeight / 2;
-          const bandWidth = window.innerHeight * 0.34;
-          this.x = Math.random() * window.innerWidth;
-          this.y = centerY + (Math.random() - 0.5) * bandWidth;
-          this.z = isStatic ? 1000 : Math.random() * 1500 + 500; // Closer stars
+      constructor(layer = 1, baseX = null, baseY = null) {
+        this.layer = layer; // 1 = small, 2 = medium, 3 = large
+        // Get document height more reliably - ensure we get full height
+        const bodyHeight = document.body ? document.body.scrollHeight : 0;
+        const htmlHeight = document.documentElement.scrollHeight;
+        const viewportHeight = window.innerHeight;
+        const docHeight = Math.max(viewportHeight, htmlHeight, bodyHeight, viewportHeight * 2); // Ensure minimum coverage
+        const vw = window.innerWidth;
+        
+        // Position relative to document (so stars scroll with page)
+        this.baseX = baseX !== null ? baseX : Math.random() * vw;
+        this.baseY = baseY !== null ? baseY : Math.random() * docHeight;
+        
+        // Layer-specific base size
+        let baseSize;
+        if (layer === 1) {
+          baseSize = 1;
+          this.opacity = Math.random() * 0.4 + 0.3;
+        } else if (layer === 2) {
+          baseSize = 2;
+          this.opacity = Math.random() * 0.5 + 0.4;
         } else {
-          this.x = Math.random() * window.innerWidth;
-          this.y = Math.random() * window.innerHeight;
-          this.z = isStatic ? 1000 : Math.random() * 2000;
+          baseSize = 3;
+          this.opacity = Math.random() * 0.6 + 0.5;
         }
-        this.prevZ = this.z;
-        this.size = isMilkyWay ? Math.random() * 1.2 + 0.35 : Math.random() * 1.5 + 0.45;
-        this.speed = isStatic ? 0 : (isMilkyWay ? Math.random() * 1.5 + 0.3 : Math.random() * 2 + 0.5);
-        this.opacity = isMilkyWay ? Math.random() * 0.08 + 0.38 : Math.random() * 0.1 + 0.32;
+        
+        // 95% of stars are smaller (base size), 5% can be up to 2x larger
+        const sizeRand = Math.random();
+        if (sizeRand < 0.95) {
+          // 95% - smaller stars (base size or slightly smaller)
+          this.size = baseSize * (0.7 + Math.random() * 0.3); // 0.7x to 1x
+        } else {
+          // 5% - bigger stars (up to 2x)
+          this.size = baseSize * (1 + Math.random()); // 1x to 2x
+        }
+        
+        // Add twinkling for some stars (30% chance)
+        this.isTwinkling = Math.random() < 0.3;
+        this.twinklePhase = Math.random() * Math.PI * 2;
+        this.twinkleSpeed = Math.random() * 0.02 + 0.01;
+        
+        // Glow intensity (stronger for larger stars)
+        this.glowIntensity = this.layer === 3 ? Math.random() * 0.4 + 0.3 : Math.random() * 0.2 + 0.1;
+        
+        // Assign star color based on temperature (90% white, 10% orange)
+        const colorRand = Math.random();
+        if (colorRand < 0.9) {
+          // White stars (90%)
+          this.color = { r: 255, g: 255, b: 255 };
+        } else {
+          // Orange stars (10%)
+          this.color = { r: 255, g: 165, b: 0 };
+        }
       }
 
       update() {
-        if (!this.isStatic) {
-          this.z -= this.speed;
-          if (this.z <= 0) {
-            this.z = this.isMilkyWay ? 2000 : 2000;
-            if (this.isMilkyWay) {
-              const centerY = window.innerHeight / 2;
-              const bandWidth = window.innerHeight * 0.34;
-              this.x = Math.random() * window.innerWidth;
-              this.y = centerY + (Math.random() - 0.5) * bandWidth;
-            } else {
-              this.x = Math.random() * window.innerWidth;
-              this.y = Math.random() * window.innerHeight;
-            }
-          }
+        // Stars scroll with the page
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        this.x = this.baseX;
+        this.y = this.baseY - scrollY;
+        
+        // Update twinkling phase
+        if (this.isTwinkling) {
+          this.twinklePhase += this.twinkleSpeed;
         }
       }
 
       draw() {
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const x = (this.x - vw / 2) * (1000 / this.z) + vw / 2;
-        const y = (this.y - vh / 2) * (1000 / this.z) + vh / 2;
-        const prevX = (this.x - vw / 2) * (1000 / this.prevZ) + vw / 2;
-        const prevY = (this.y - vh / 2) * (1000 / this.prevZ) + vh / 2;
+        // Skip if outside viewport (with some margin for smooth scrolling)
+        const margin = 100;
+        if (this.x < -margin || this.x > window.innerWidth + margin || 
+            this.y < -margin || this.y > window.innerHeight + margin) {
+          return;
+        }
 
-        this.prevZ = this.z;
+        let opacity = this.opacity;
+        
+        // Apply twinkling effect
+        if (this.isTwinkling) {
+          const twinkleFactor = 0.7 + 0.3 * Math.sin(this.twinklePhase);
+          opacity *= twinkleFactor;
+        }
 
-        const radius = Math.max(0.3, (1 - this.z / 2000) * this.size);
-        const opacity = this.isStatic ? this.opacity : Math.max(0.2, (1 - this.z / 2000) * this.opacity);
-
-        if (prevX !== x || prevY !== y) {
-          const trailOpacity = this.isMilkyWay ? opacity * 0.1 : opacity * 0.07;
-          ctx.strokeStyle = `rgba(255, 255, 255, ${trailOpacity})`;
-          ctx.lineWidth = this.isMilkyWay ? radius * 0.45 : radius * 0.3;
+        const radius = this.size;
+        
+        // Draw star with peripheral glow effect for larger stars
+        if (this.layer === 3) {
+          const glowRadius = radius * (1 + this.glowIntensity * 2);
+          const gradient = ctx.createRadialGradient(this.x, this.y, radius * 0.3, this.x, this.y, glowRadius);
+          
+          gradient.addColorStop(0, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${opacity})`);
+          gradient.addColorStop(0.4, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${opacity * 0.6})`);
+          const peripheralOpacity = opacity * this.glowIntensity * (0.5 + Math.random() * 0.5);
+          gradient.addColorStop(0.7, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${peripheralOpacity})`);
+          gradient.addColorStop(1, `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0)`);
+          
+          ctx.fillStyle = gradient;
           ctx.beginPath();
-          ctx.moveTo(prevX, prevY);
-          ctx.lineTo(x, y);
-          ctx.stroke();
-        }
-
-        // Draw star
-        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        if (opacity > 0.55 || this.isMilkyWay) {
-          ctx.shadowBlur = radius * (this.isMilkyWay ? 1.2 : 0.8);
-          ctx.shadowColor = "rgba(255, 255, 255, 0.2)";
+          ctx.arc(this.x, this.y, glowRadius, 0, Math.PI * 2);
           ctx.fill();
-          ctx.shadowBlur = 0;
         }
+        
+        // Draw star core with color
+        ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
@@ -138,33 +181,64 @@ const NightSky = () => {
         this.width = Math.random() * 1.15 + 0.7;
         this.life = 0;
         this.maxLife = Math.floor(Math.random() * 120 + 120);
+        
+        // Random base scale (some comets far away, some close)
+        this.baseScale = Math.random() * 0.8 + 0.2; // Range: 0.2 to 1.0
+        this.currentScale = this.baseScale;
+        
+        // For some comets, make size variable (coming toward us or going away)
+        // 60% chance of having variable size
+        this.hasVariableSize = Math.random() < 0.6;
+        if (this.hasVariableSize) {
+          // Random growth rate: positive = coming toward us, negative = going away
+          this.scaleChangeRate = (Math.random() - 0.5) * 0.008; // Range: -0.004 to 0.004
+        } else {
+          this.scaleChangeRate = 0;
+        }
       }
 
       update() {
         this.x += this.vx;
         this.y += this.vy;
         this.life += 1;
+        
+        // Update scale if comet has variable size
+        if (this.hasVariableSize) {
+          this.currentScale += this.scaleChangeRate;
+          // Clamp scale to reasonable bounds
+          this.currentScale = Math.max(0.1, Math.min(2.0, this.currentScale));
+        }
       }
 
       draw() {
-        const tailX = this.x - this.vx * this.length * 0.12;
-        const tailY = this.y - this.vy * this.length * 0.12;
+        // Comet position fixed to viewport
+        const viewX = this.x;
+        const viewY = this.y;
+        const tailX = viewX - this.vx * this.length * 0.12;
+        const tailY = viewY - this.vy * this.length * 0.12;
 
-        const tail = ctx.createLinearGradient(this.x, this.y, tailX, tailY);
+        // Apply scale to all dimensions
+        const scaledWidth = this.width * this.currentScale;
+        const scaledHeadSize = 1.4 * this.currentScale;
+        const scaledLength = this.length * this.currentScale;
+        const adjustedTailX = viewX - this.vx * scaledLength * 0.12;
+        const adjustedTailY = viewY - this.vy * scaledLength * 0.12;
+
+        const tail = ctx.createLinearGradient(viewX, viewY, adjustedTailX, adjustedTailY);
         tail.addColorStop(0, "rgba(255, 255, 255, 0.45)");
         tail.addColorStop(0.25, "rgba(190, 220, 255, 0.26)");
         tail.addColorStop(1, "rgba(255, 255, 255, 0)");
 
         ctx.strokeStyle = tail;
-        ctx.lineWidth = this.width;
+        ctx.lineWidth = scaledWidth;
         ctx.beginPath();
-        ctx.moveTo(this.x, this.y);
-        ctx.lineTo(tailX, tailY);
+        ctx.moveTo(viewX, viewY);
+        ctx.lineTo(adjustedTailX, adjustedTailY);
         ctx.stroke();
 
         ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 1.4, 0, Math.PI * 2);
+        ctx.arc(viewX, viewY, scaledHeadSize, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -180,33 +254,66 @@ const NightSky = () => {
       }
     }
 
-    // Create static stars (always visible, no movement)
-    const staticStars = [];
-    const staticStarCount = 15;
-    for (let i = 0; i < staticStarCount; i++) {
-      staticStars.push(new Star(false, true));
+    // Get reliable document height for star distribution
+    const getDocumentHeight = () => {
+      const bodyHeight = document.body ? document.body.scrollHeight : 0;
+      const htmlHeight = document.documentElement.scrollHeight;
+      const viewportHeight = window.innerHeight;
+      return Math.max(viewportHeight, htmlHeight, bodyHeight, viewportHeight * 2);
+    };
+
+    // Create star layers inspired by CSS example (sparser)
+    // Layer 1: Small stars (1px) - many, fast scroll
+    const starsLayer1 = [];
+    const starLayer1Count = 60; // 1/5 of 300 = 60 stars
+    const initialDocHeight = getDocumentHeight();
+    for (let i = 0; i < starLayer1Count; i++) {
+      starsLayer1.push(new Star(1));
     }
 
-    // Create static Milky Way stars
-    const staticMilkyWayStars = [];
-    const staticMilkyWayCount = 8;
-    for (let i = 0; i < staticMilkyWayCount; i++) {
-      staticMilkyWayStars.push(new Star(true, true));
+    // Layer 2: Medium stars (2px) - medium count, medium scroll
+    const starsLayer2 = [];
+    const starLayer2Count = 120; // Reduced from 700
+    for (let i = 0; i < starLayer2Count; i++) {
+      starsLayer2.push(new Star(2));
     }
 
-    // Create regular moving stars
-    const stars = [];
-    const starCount = 12;
-    for (let i = 0; i < starCount; i++) {
-      stars.push(new Star(false));
+    // Layer 3: Large stars (3px) - few, slow scroll
+    const starsLayer3 = [];
+    const starLayer3Count = 40; // Reduced from 200
+    for (let i = 0; i < starLayer3Count; i++) {
+      starsLayer3.push(new Star(3));
     }
-
-    // Create Milky Way stars (river of stars)
-    const milkyWayStars = [];
-    const milkyWayCount = 7;
-    for (let i = 0; i < milkyWayCount; i++) {
-      milkyWayStars.push(new Star(true));
-    }
+    
+    // Recalculate and redistribute stars if document height changes
+    const redistributeStars = () => {
+      const newDocHeight = getDocumentHeight();
+      if (newDocHeight > initialDocHeight) {
+        // Add more stars to fill the additional space
+        const heightRatio = newDocHeight / initialDocHeight;
+        const additionalStars1 = Math.floor(starLayer1Count * (heightRatio - 1) * 0.5);
+        const additionalStars2 = Math.floor(starLayer2Count * (heightRatio - 1) * 0.5);
+        const additionalStars3 = Math.floor(starLayer3Count * (heightRatio - 1) * 0.5);
+        
+        for (let i = 0; i < additionalStars1; i++) {
+          const y = initialDocHeight + Math.random() * (newDocHeight - initialDocHeight);
+          starsLayer1.push(new Star(1, null, y));
+        }
+        for (let i = 0; i < additionalStars2; i++) {
+          const y = initialDocHeight + Math.random() * (newDocHeight - initialDocHeight);
+          starsLayer2.push(new Star(2, null, y));
+        }
+        for (let i = 0; i < additionalStars3; i++) {
+          const y = initialDocHeight + Math.random() * (newDocHeight - initialDocHeight);
+          starsLayer3.push(new Star(3, null, y));
+        }
+      }
+    };
+    
+    // Redistribute after a short delay to ensure document is fully loaded
+    setTimeout(redistributeStars, 100);
+    setTimeout(redistributeStars, 500);
+    window.addEventListener("resize", redistributeStars);
 
     const celestialBodies = Array.from(
       { length: Math.random() < 0.5 ? 1 : 2 },
@@ -220,9 +327,12 @@ const NightSky = () => {
     );
 
     const drawCelestialBodies = () => {
+      // Celestial bodies scroll with page
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      const docHeight = Math.max(window.innerHeight, document.documentElement.scrollHeight);
       celestialBodies.forEach((body) => {
         const x = body.xRatio * window.innerWidth;
-        const y = body.yRatio * window.innerHeight;
+        const y = body.yRatio * docHeight - scrollY;
 
         if (body.kind === "planet") {
           const gradient = ctx.createRadialGradient(
@@ -254,39 +364,40 @@ const NightSky = () => {
       });
     };
 
-    const drawMilkyWay = () => {};
     const activeComets = [];
     let lastCometTime = 0;
-    let nextCometDelay = Math.random() * 2200 + 800;
-    const maxComets = 6;
+    let nextCometDelay = Math.random() * 1200 + 400;
+    const maxComets = 12;
 
     // Animation loop
     const animate = (timestamp = 0) => {
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      const bodyHeight = document.body ? document.body.scrollHeight : 0;
+      const htmlHeight = document.documentElement.scrollHeight;
+      const viewportHeight = window.innerHeight;
+      const docHeight = Math.max(viewportHeight, htmlHeight, bodyHeight, viewportHeight * 2);
+      const vw = window.innerWidth;
       ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
-      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      ctx.fillRect(0, 0, vw, docHeight);
 
       drawCelestialBodies();
 
-      // Draw Milky Way background
-      drawMilkyWay();
-
-      // Draw static stars first (always visible)
-      staticStars.forEach((star) => {
-        star.draw();
-      });
-
-      staticMilkyWayStars.forEach((star) => {
-        star.draw();
-      });
-
-      // Update and draw moving regular stars
-      stars.forEach((star) => {
+      // Update and draw stars in layers (back to front for proper layering)
+      // Stars scroll with the page
+      // Layer 1: Small stars (drawn first)
+      starsLayer1.forEach((star) => {
         star.update();
         star.draw();
       });
 
-      // Update and draw moving Milky Way stars
-      milkyWayStars.forEach((star) => {
+      // Layer 2: Medium stars
+      starsLayer2.forEach((star) => {
+        star.update();
+        star.draw();
+      });
+
+      // Layer 3: Large stars (drawn last)
+      starsLayer3.forEach((star) => {
         star.update();
         star.draw();
       });
@@ -294,7 +405,7 @@ const NightSky = () => {
       if (timestamp - lastCometTime > nextCometDelay && activeComets.length < maxComets) {
         activeComets.push(new Comet());
         lastCometTime = timestamp;
-        nextCometDelay = Math.random() * 2600 + 700;
+        nextCometDelay = Math.random() * 1200 + 400;
       }
 
       for (let i = activeComets.length - 1; i >= 0; i -= 1) {
@@ -313,6 +424,7 @@ const NightSky = () => {
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("scroll", resizeCanvas);
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
@@ -322,7 +434,7 @@ const NightSky = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full"
+      className="absolute top-0 left-0 w-full"
       style={{
         opacity: 1,
       }}
