@@ -150,7 +150,10 @@ varying vec2 vUv;
 uniform sampler2D uTarget;
 uniform float uDecay;
 void main() {
-  gl_FragColor = texture2D(uTarget, vUv) * uDecay;
+  vec4 val = texture2D(uTarget, vUv) * uDecay;
+  // Kill near-zero values to prevent permanent faint marks
+  val = val * step(0.003, val);
+  gl_FragColor = val;
 }`;
 
 const FluidBackground = () => {
@@ -353,9 +356,9 @@ const FluidBackground = () => {
       const dt = clamp((t - lastTime) / 1000, 0.008, 0.033);
       lastTime = t;
 
-      runVelocityAdvection(velocity, velocity, dt, 0.98, 20.0);
-      runAdvection(dye, velocity, dt, 0.99, 24.0);
-      runDecay(dye, 0.997);
+      runVelocityAdvection(velocity, velocity, dt, 0.97, 20.0);
+      runAdvection(dye, velocity, dt, 0.985, 24.0);
+      runDecay(dye, 0.993);
 
       while (splats.length) {
         const s = splats.shift();
