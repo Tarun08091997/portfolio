@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTheme } from "../contexts/ThemeContext";
 import Intro from "./Intro";
 import Skills from "./Skills";
 import Projects from "./Projects";
@@ -9,6 +10,8 @@ import Contact from "./Contact";
 import AdvancedFluidBackground from "./AdvancedFluidBackground";
 
 const HomePage = () => {
+  const { theme } = useTheme();
+
   useEffect(() => {
     // Handle hash navigation on page load
     const handleHashNavigation = () => {
@@ -37,7 +40,7 @@ const HomePage = () => {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0">
-        <AdvancedFluidBackground />
+        <AdvancedFluidBackground key={`advanced-bg-${theme}`} />
       </div>
       <div className="relative z-10">
         {/* About Section */}
@@ -82,4 +85,3 @@ const HomePage = () => {
 };
 
 export default HomePage;
-

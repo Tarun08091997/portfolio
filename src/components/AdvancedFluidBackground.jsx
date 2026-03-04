@@ -563,15 +563,25 @@ const AdvancedFluidBackground = () => {
         : { width: min, height: max };
     };
 
-    const getWebGLContextSize = (size) => {
-      return Math.floor(size * (window.devicePixelRatio || 1));
+    const getWebGLContextSize = (size) => Math.max(1, Math.floor(size * (window.devicePixelRatio || 1)));
+
+    const getCanvasRect = () => canvas.getBoundingClientRect();
+
+    const getPointerPosition = (clientX, clientY) => {
+      const rect = getCanvasRect();
+      const dpr = window.devicePixelRatio || 1;
+      return {
+        x: (clientX - rect.left) * dpr,
+        y: (clientY - rect.top) * dpr,
+      };
     };
 
     // Initialize FBOs
     let dye, velocity, divergence, curl, pressure;
     const initFBOs = () => {
-      const canvasWidth = canvas.width || getWebGLContextSize(canvas.clientWidth);
-      const canvasHeight = canvas.height || getWebGLContextSize(canvas.clientHeight);
+      const rect = getCanvasRect();
+      const canvasWidth = canvas.width || getWebGLContextSize(rect.width || window.innerWidth);
+      const canvasHeight = canvas.height || getWebGLContextSize(rect.height || window.innerHeight);
       const simRes = getResolution(config.SIM_RESOLUTION, canvasWidth, canvasHeight);
       const dyeRes = getResolution(config.DYE_RESOLUTION, canvasWidth, canvasHeight);
 
@@ -668,13 +678,16 @@ const AdvancedFluidBackground = () => {
 
     // Initialize canvas size
     const resizeCanvas = () => {
-      const width = getWebGLContextSize(canvas.clientWidth);
-      const height = getWebGLContextSize(canvas.clientHeight);
+      const rect = getCanvasRect();
+      const cssWidth = rect.width || window.innerWidth;
+      const cssHeight = rect.height || window.innerHeight;
+      const width = getWebGLContextSize(cssWidth);
+      const height = getWebGLContextSize(cssHeight);
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
-        canvas.style.width = `${canvas.clientWidth}px`;
-        canvas.style.height = `${canvas.clientHeight}px`;
+        canvas.style.width = `${cssWidth}px`;
+        canvas.style.height = `${cssHeight}px`;
         gl.viewport(0, 0, width, height);
         initFBOs();
       }
@@ -683,7 +696,10 @@ const AdvancedFluidBackground = () => {
     // Update function
     let lastTime = Date.now();
     let colorUpdate = 0;
+    let animationFrameId = 0;
+    let isDestroyed = false;
     const update = () => {
+      if (isDestroyed) return;
       const dt = Math.min((Date.now() - lastTime) / 1000, 0.016);
       lastTime = Date.now();
 
@@ -788,7 +804,7 @@ const AdvancedFluidBackground = () => {
       gl.uniform1i(displayUniforms.uTexture, dye.read.attach(0));
       blit(null);
 
-      requestAnimationFrame(update);
+      animationFrameId = requestAnimationFrame(update);
     };
 
     const wrap = (value, min, max) => {
@@ -834,8 +850,7 @@ const AdvancedFluidBackground = () => {
 
     const handleMouseDown = (e) => {
       const pointer = pointers[0];
-      const x = getWebGLContextSize(e.clientX);
-      const y = getWebGLContextSize(e.clientY);
+      const { x, y } = getPointerPosition(e.clientX, e.clientY);
       updatePointer(pointer, -1, x, y);
       const color = generateColor();
       color.r *= 10;
@@ -846,8 +861,7 @@ const AdvancedFluidBackground = () => {
 
     const handleMouseMove = (e) => {
       const pointer = pointers[0];
-      const x = getWebGLContextSize(e.clientX);
-      const y = getWebGLContextSize(e.clientY);
+      const { x, y } = getPointerPosition(e.clientX, e.clientY);
       movePointer(pointer, -1, x, y);
     };
 
@@ -855,8 +869,7 @@ const AdvancedFluidBackground = () => {
       const touches = e.targetTouches;
       for (let i = 0; i < touches.length; i++) {
         const pointer = pointers[i] || pointers[0];
-        const x = getWebGLContextSize(touches[i].clientX);
-        const y = getWebGLContextSize(touches[i].clientY);
+        const { x, y } = getPointerPosition(touches[i].clientX, touches[i].clientY);
         updatePointer(pointer, touches[i].identifier, x, y);
       }
     };
@@ -865,8 +878,7 @@ const AdvancedFluidBackground = () => {
       const touches = e.targetTouches;
       for (let i = 0; i < touches.length; i++) {
         const pointer = pointers[i] || pointers[0];
-        const x = getWebGLContextSize(touches[i].clientX);
-        const y = getWebGLContextSize(touches[i].clientY);
+        const { x, y } = getPointerPosition(touches[i].clientX, touches[i].clientY);
         movePointer(pointer, touches[i].identifier, x, y);
       }
     };
@@ -880,6 +892,7 @@ const AdvancedFluidBackground = () => {
     };
 
     // Initialize
+    resizeCanvas();
     initFBOs();
     update();
 
@@ -891,6 +904,10 @@ const AdvancedFluidBackground = () => {
     window.addEventListener("touchend", handleTouchEnd);
 
     return () => {
+      isDestroyed = true;
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
       window.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("touchstart", handleTouchStart);
@@ -926,4 +943,3 @@ const AdvancedFluidBackground = () => {
 };
 
 export default AdvancedFluidBackground;
-

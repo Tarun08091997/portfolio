@@ -10,6 +10,7 @@ const NightSky = () => {
     const ctx = canvas.getContext("2d");
     let animationFrameId;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let loadResizeTimeoutId = 0;
 
     // Set canvas size - covers full document height for scrolling
     const resizeCanvas = () => {
@@ -30,10 +31,11 @@ const NightSky = () => {
     window.addEventListener("scroll", resizeCanvas);
     
     // Recalculate on load to ensure full document height
-    window.addEventListener("load", () => {
+    const handleLoad = () => {
       resizeCanvas();
-      setTimeout(resizeCanvas, 100);
-    });
+      loadResizeTimeoutId = window.setTimeout(resizeCanvas, 100);
+    };
+    window.addEventListener("load", handleLoad);
 
     // Star class with layer-based system
     class Star {
@@ -311,8 +313,8 @@ const NightSky = () => {
     };
     
     // Redistribute after a short delay to ensure document is fully loaded
-    setTimeout(redistributeStars, 100);
-    setTimeout(redistributeStars, 500);
+    const redistributeTimeoutOne = window.setTimeout(redistributeStars, 100);
+    const redistributeTimeoutTwo = window.setTimeout(redistributeStars, 500);
     window.addEventListener("resize", redistributeStars);
 
     const celestialBodies = Array.from(
@@ -425,6 +427,13 @@ const NightSky = () => {
     return () => {
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("scroll", resizeCanvas);
+      window.removeEventListener("load", handleLoad);
+      window.removeEventListener("resize", redistributeStars);
+      if (loadResizeTimeoutId) {
+        window.clearTimeout(loadResizeTimeoutId);
+      }
+      window.clearTimeout(redistributeTimeoutOne);
+      window.clearTimeout(redistributeTimeoutTwo);
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
